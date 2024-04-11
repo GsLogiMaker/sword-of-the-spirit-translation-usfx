@@ -1,6 +1,6 @@
 
 import sys
-import readline
+import readline # Adds up arrow handling to input() (not unused)
 
 from bs4 import BeautifulSoup
 from hotreload import Loader
@@ -12,25 +12,23 @@ def main():
 
 	script = Loader("build.py")
 
-	script.load(sys.modules[__name__])
-
 	while True:
 		got = input("SOTS Builder > ").lower()
-		if " " in got:
-			args = got.split("")
-		else:
-			args = [got]
+		args = got.split(" ")
+		command = args.pop(0)
 
-		if args[0] == "exit":
+		if command == "exit":
 			return
+		elif command == "":
+			continue
 
 		try:
-			func = script.__getattr__(args[0])
-			func(sys.modules[__name__])
+			func = script.__getattr__(command)
+			func(sys.modules[__name__], *args)
 		except KeyboardInterrupt as e:
-			print(f"	KeyboardInterrupt")
+			print(f" !  KeyboardInterrupt")
 		except Exception as e:
-			print(f"	Unexpected error: {e}")
+			print(f" !  {e}")
 		
 
 if __name__ == "__main__":
