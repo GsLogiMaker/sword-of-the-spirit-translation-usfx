@@ -1,11 +1,19 @@
-﻿
+
 import bs4
+import os
+import urllib.request
+import zipfile
 from types import ModuleType
 from bs4 import BeautifulSoup
 from bs4.element import Tag
 from bs4.element import NavigableString
+from os.path import join as join_path
+
+WEBU_FILES_URL:str = "https://ebible.org/Scriptures/engwebu_usfx.zip"
 
 def build(mod:ModuleType) -> None:
+	if not os.path.exists("webu/engwebu_usfx.xml"):
+		download(mod)
 	if mod.doc == None:
 		load(mod)
 	
@@ -14,21 +22,43 @@ def build(mod:ModuleType) -> None:
 
 	print(" *  Done!")
 
-def save(mod:ModuleType, file_name:str="out.xml") -> None:
+def download(mod:ModuleType, folder:str="webu") -> None:
+	"""Downloads the World English Version Updated USFX files to use as a template
+	Use `load` to load the files into memory."""
+	tmp_file_name ="webu_usfx.zip"
+	tmp_file_path = join_path(folder, tmp_file_name)
+
+	print(f"... Downloading WEBU translation to \"{tmp_file_path}\"")
+	try:
+		os.makedirs(folder) if not os.path.isdir(folder) else None
+		urllib.request.urlretrieve(WEBU_FILES_URL, tmp_file_path)
+
+		print("... Unzipping files")
+		with zipfile.ZipFile(tmp_file_path, "r") as zip:
+			zip.extractall(folder)
+	finally:
+		os.remove(tmp_file_path)
+
+
+def save(mod:ModuleType, file_name:str="eng_sots_usfx.xml", folder:str="bin") -> None:
 	"""Saves an edited translation file to the file system"""
 	print(f"... Saving translation file to \"{file_name}\"")
 
 	doc:BeautifulSoup = mod.doc
-	with open(file_name, "w") as file:
+	os.makedirs(folder) if not os.path.isdir(folder) else None
+	with open(join_path(folder, file_name), "w") as file:
 		file.write(str(doc))
 
-def load(mod:ModuleType, file:str="eng_sots_usfx.xml") -> None:
+def load(mod:ModuleType, file:str="webu/engwebu_usfx.xml") -> None:
 	"""Loads a translation file for building and editing"""
+	if not os.path.exists(file):
+		print(f" !  No file exists at \"{file}\"")
+		return
 	print(f"... Loading \"{file}\"")
 	with open(file, "r") as f:
 		mod.doc = BeautifulSoup(f, "xml")
 
-def textify(mod:ModuleType, book:str="", chapter:int=-1) -> None:
+def textify(mod:ModuleType, book:str="", chapter:int=-1, folder:str="bin") -> None:
 	doc:BeautifulSoup = mod.doc
 	book = book.upper()
 	
@@ -67,7 +97,8 @@ def textify(mod:ModuleType, book:str="", chapter:int=-1) -> None:
 	file_name = f"{book}{chapter}.txt"
 
 	print(f"... Saving text to \"{file_name}\"")
-	with open(file_name, "w") as f:
+	os.makedirs(folder) if not os.path.isdir(folder) else None
+	with open(join_path(folder, file_name), "w") as f:
 		f.write(text)
 
 
