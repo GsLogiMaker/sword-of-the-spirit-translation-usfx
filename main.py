@@ -5,6 +5,17 @@ import readline # Adds up arrow handling to input() (not unused)
 from bs4 import BeautifulSoup
 from hotreload import Loader
 
+class bcolors:
+	HEADER = '\033[95m'
+	OKBLUE = '\033[94m'
+	OKCYAN = '\033[96m'
+	OKGREEN = '\033[92m'
+	WARNING = '\033[93m'
+	FAIL = '\033[91m'
+	ENDC = '\033[0m'
+	BOLD = '\033[1m'
+	UNDERLINE = '\033[4m'
+
 doc:BeautifulSoup|None = None
 
 def main():
@@ -13,7 +24,7 @@ def main():
 	script = Loader("build.py")
 
 	while True:
-		got = input("SOTS Builder > ").lower()
+		got = input(f"{bcolors.OKCYAN}SOTS Builder > {bcolors.ENDC}").lower()
 		args = got.split(" ")
 		command = args.pop(0)
 
